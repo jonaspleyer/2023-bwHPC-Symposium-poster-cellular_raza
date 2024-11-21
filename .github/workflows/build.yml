@@ -13,15 +13,15 @@ jobs:
       - name: Compile
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: ${{ env.$main }}.tex
+          root_file: ${{ env.main }}.tex
           latexmk_shell_escape: true
           args: -pdf -shell-escape
 
       - name: Upload pdf as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.$main }}.pdf
-          path: ${{ env.$main }}.pdf
+          name: ${{ env.main }}.pdf
+          path: ${{ env.main }}.pdf
   
   release_pdf:
     name: Release PDF
@@ -31,9 +31,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ env.$main }}.pdf
+          name: ${{ env.main }}.pdf
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: ${{ env.$main }}.pdf
+          artifacts: ${{ env.main }}.pdf
           token: $${{ secrets.GITHUB_TOKEN }}
