@@ -1,0 +1,133 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Template for bwHPC-Symposium 
+% (compile with pdflatex)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+% --- do NOT change anything here ---
+%
+
+\documentclass[fontsize=11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage[a4paper]{geometry}
+\geometry{outer=2.5cm, inner=2.5cm, top=3.5cm, bottom=3.5cm}
+\usepackage{lmodern}
+\usepackage{lineno}
+\usepackage{color}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\changed}[1]{{#1}}
+\newcommand*{\REVIEW}{} % comment this out in the final version of the document
+\ifdefined\REVIEW
+   \linenumbers
+   \renewcommand{\changed}[1]{\textcolor{red}{#1}}
+\fi
+
+% switch font family to using sans-serif by default for everything (except mathematics)
+\renewcommand{\familydefault}{\sfdefault}
+
+%
+% --- optional packages ---
+%
+
+%\usepackage{verbatim}
+%\usepackage{hyperref}
+%\usepackage{amsmath} 
+%\usepackage{amsfonts} 
+%\usepackage{amssymb}
+
+%
+% --- title and author ---
+%
+
+\title{Title of the extended abstract}
+
+\author{
+        Main Author \\
+        Institute A \\
+        University X
+            \and
+        Co Author \\
+        Institute B \\
+        University Y
+}
+
+%
+% --- print date and title ---
+%
+
+\date{}
+\begin{document}
+\maketitle
+
+%
+% --- main contents starts here ---
+%
+
+\begin{abstract}
+A typical abstract is 5-10 lines long. The entire document should contain 3 to 6 pages.
+\end{abstract}
+
+\section{Introduction}\label{introduction}
+
+The following sample sections are only suggestions –- please feel free to name
+them as you wish, add/remove (sub-)sections, etc.
+
+\section{Theory and methods}\label{theory}
+
+Theoretical, methodical and/or experimental details. Example
+reference \cite{muster} -- for the list of references see end of document.
+
+\section{Results and discussion}\label{results}
+
+The main focus of this section is the presentation of the scientific results
+including diagrams, figures, tables, etc.
+
+Additionally some HPC related details are very much appreciated, for example
+information about CPU usage, number of cores per job, scaling behavior,
+parallelization efficiency, typical memory usage, temporary disk requirements,
+or similar information interesting for HPC focused readers.
+
+%
+% --- figure example ---
+%
+
+Figures owned by someone else may only be used with permission and must be
+referenced properly in the figure caption. Do not let text flow around figures.
+
+% \begin{figure}[htb] 
+%   \begin{center}
+%     \includegraphics[scale=0.5]{bwHPC_Logo_rgb.jpeg}
+%     \caption{Our logo}
+%     \label{fig:bwlogo}
+%   \end{center}
+% \end{figure}
+
+\section{Conclusions}\label{conclusions}
+
+Conclude the findings. 
+
+\section{Acknowledgements} 
+
+Resources that did contribute to this research.
+
+%\bibliographystyle{abbrv}
+%\bibliography{simple}
+
+\begin{thebibliography}{}
+
+\bibitem{muster}
+M. Mustermann, N. Nobody, and J. Doe. The joy of publishing. Journal of Any Pub. 32 (2014) 575--582.
+
+\end{thebibliography}
+
+\end{document} 
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
+
