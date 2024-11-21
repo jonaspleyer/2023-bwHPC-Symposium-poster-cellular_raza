@@ -41,3 +41,4 @@ jobs:
         with:
           artifacts: ${{ env.main }}.pdf
           token: $${{ secrets.GITHUB_TOKEN }}
+          commit: main
