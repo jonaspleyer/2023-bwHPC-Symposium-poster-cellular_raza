@@ -1,5 +1,9 @@
 name: Build LaTeX document
-on: [push, fork]
+on:
+  push:
+    tags:
+    - '*'
+
 env:
   main: Pub_bwHPC_Symposium_2023.Jonas-Pleyer-Version-01
 jobs:
