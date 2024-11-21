@@ -36,7 +36,11 @@ jobs:
         with:
           name: ${{ env.main }}.pdf
 
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - uses: ncipollo/release-action@v1
         with:
           artifacts: ${{ env.main }}.pdf
-          tag: ${{ github.ref_name }}
+          tag: ${{ steps.vars.outputs.sha_short }}
