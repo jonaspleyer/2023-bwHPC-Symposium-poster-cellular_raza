@@ -1,9 +1,5 @@
 name: Build LaTeX document
-on:
-  create:
-    branches: [main]
-    tags:
-      - '*'
+on: [push, fork]
 jobs:
   build_latex:
     name: Build
