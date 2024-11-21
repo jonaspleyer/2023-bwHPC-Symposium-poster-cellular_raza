@@ -1,8 +1,5 @@
 name: Build LaTeX document
-on:
-  push:
-    tags:
-    - '*'
+on: push
 
 env:
   main: Pub_bwHPC_Symposium_2023.Jonas-Pleyer-Version-01
