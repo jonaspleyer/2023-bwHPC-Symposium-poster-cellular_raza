@@ -39,6 +39,5 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           artifacts: ${{ env.main }}.pdf
-          token: $${{ secrets.GITHUB_TOKEN }}
           commit: main
           tag: main
