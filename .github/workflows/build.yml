@@ -5,10 +5,7 @@ env:
 jobs:
   build_latex:
     name: Build
-    runs-on: ${{matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v4
