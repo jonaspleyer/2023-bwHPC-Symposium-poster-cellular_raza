@@ -19,7 +19,7 @@
 \usepackage{color}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
 \newcommand{\changed}[1]{{#1}}
-\newcommand*{\REVIEW}{} % comment this out in the final version of the document
+% \newcommand*{\REVIEW}{} % comment this out in the final version of the document
 \ifdefined\REVIEW
    \linenumbers
    \renewcommand{\changed}[1]{\textcolor{red}{#1}}
@@ -33,32 +33,48 @@
 %
 
 %\usepackage{verbatim}
-%\usepackage{hyperref}
-%\usepackage{amsmath} 
-%\usepackage{amsfonts} 
-%\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{amsmath} 
+\usepackage{amsfonts} 
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{siunitx}
+
+%
+% --- define some settings ---
+%
+\definecolor{beige}{RGB}{255, 240, 230}
+\lstset{
+    backgroundcolor=\color{beige},
+    frame=single,
+    keepspaces=true,
+    captionpos=b,
+}
+
+\setlength\parindent{0pt}
 
 %
 % --- title and author ---
 %
 
-\title{Title of the extended abstract}
+\title{cellular\_raza - Novel Flexibility in Design of Agent-Based Models in Cellular Systems}
 
 \author{
-        Main Author \\
-        Institute A \\
-        University X
-            \and
-        Co Author \\
-        Institute B \\
-        University Y
+    Jonas Pleyer\\
+    Freiburg Center for Data Analysis, Modeling and AI\\
+    University of Freiburg
+        \and
+    Christian Fleck\\
+    Freiburg Center for Data Analysis, Modeling and AI\\
+    University of Freiburg
 }
 
 %
 % --- print date and title ---
 %
 
-\date{}
+\date{21.11.2024}
 \begin{document}
 \maketitle
 
@@ -67,67 +83,323 @@
 %
 
 \begin{abstract}
-A typical abstract is 5-10 lines long. The entire document should contain 3 to 6 pages.
+    This paper presents two case-studies using \lstinline{cellular_raza}.
+    First, we develop a simple model with cell-type specific interactions which results in the
+    well-known cell-sorting phenomenon.
+    In the second approach, we use the previously constructed model to asses the parallelization
+    performance of the numerical backend at the core of \lstinline{cellular_raza}.
+    We show that values of up to $p=97.78\pm0.14\%$ parallelizable code are achievable.
 \end{abstract}
 
+% ##################################################################################################
 \section{Introduction}\label{introduction}
+% ##################################################################################################
 
-The following sample sections are only suggestions –- please feel free to name
-them as you wish, add/remove (sub-)sections, etc.
+\lstinline{cellular_raza} is a cellular agent-based modeling framework~\cite{Pleyer2023} which 
+allows researchers to construct models from a clean slate.
+In contrast to other agent-based modelling toolkits, it is free of assumptions about the underlying
+cellular representation.
+This enables researchers to build up complex models while retaining full control over every
+parameter and behaviour introduced.
 
-\section{Theory and methods}\label{theory}
+At the 9th bwHPC Symposium 2023, we presented a very compacted variety of applications and analytics
+of \lstinline{cellular_raza}~\cite{PeaceOfPostersbwHPC}.
+In order to provide more details, we focus on two case-studies which were also presented.
+We refer the interested reader to the documentation website
+\href{https://cellular-raza.com}{cellular-raza.com} where one can find the full documentation,
+examples and information about the underlying assumptions and methods which we leveraged in the
+development of \lstinline{cellular_raza}.
 
-Theoretical, methodical and/or experimental details. Example
-reference \cite{muster} -- for the list of references see end of document.
+% ##################################################################################################
+\section{Cell Sorting}
+\label{sec:cell-sorting}
+% ##################################################################################################
 
-\section{Results and discussion}\label{results}
+Cell Sorting is a naturally occuring phenomenon which drives many biological
+processes~\cite{Steinberg1963,Graner1992}.
+While the underlying biological reality can be quite complex, it is rather simple to describe such
+a system in its most basic form.
+The underlying principle is that interactions between cells are specific with respect to their type.
 
-The main focus of this section is the presentation of the scientific results
-including diagrams, figures, tables, etc.
+\paragraph{Mathematical Description}
+We assume that our cells are spherical objects which interact via force potentials.
+The two positions of cells are $x_i,x_j$ and their distance is $r=||x_i-x_j||$.
 
-Additionally some HPC related details are very much appreciated, for example
-information about CPU usage, number of cores per job, scaling behavior,
-parallelization efficiency, typical memory usage, temporary disk requirements,
-or similar information interesting for HPC focused readers.
+\begin{align}
+    \sigma_{i,j} &= \frac{r}{R_i + R_j}\\
+    U(\sigma_{i,j}) &= V_0 \left(\frac{1}{3\sigma_{i,j}^3} - \frac{1}{\sigma_{i,j}}\right).
+\end{align}
 
-%
-% --- figure example ---
-%
+The values $R_i,R_j$ are the radii of the cells ($i\neq j$) interacting with each other.
+For simplification, we can assume that they are identical $R_i=R_j=R$.
+Furthermore, we assume that the equation of motion is given by
 
-Figures owned by someone else may only be used with permission and must be
-referenced properly in the figure caption. Do not let text flow around figures.
+\begin{equation}
+    \partial^2_t x = F - \lambda \partial_t x
+\end{equation}
 
-% \begin{figure}[htb] 
-%   \begin{center}
-%     \includegraphics[scale=0.5]{bwHPC_Logo_rgb.jpeg}
-%     \caption{Our logo}
-%     \label{fig:bwlogo}
-%   \end{center}
-% \end{figure}
+where the first term is the usual force term $F = - \nabla V$ obtained by differentiating the given
+potential and the second term is a damping term which arises due to the cells being immersed inside
+a viscuous fluid.
+Note that we rescaled the units of our parameters in order to normalize our mass to $m=1$.
+This means, every parameter can be expressed in units of length and time.
 
+We can assume that interactions between cells are restricted to close ranges and thus enforce a
+cutoff $\xi\geq R_i+R_j$ for the interaction where the resulting force is identical to zero.
+We further assume that cells of different species do not attract each other but do repel.
+To describe this behaviour, we set the potential to zero when $r>R_i+R_j$ (i.e., $\sigma_{i,j}>1$)
+and both cells have distinct species type $s_i$.
+
+\begin{equation}
+    V(\sigma_{i,j}) =
+    \begin{cases}
+        0 &\text{ if } \sigma_{i,j}\geq\xi/(R_i+R_j)\\
+        0 &\text{ if } s_i\neq s_j \text{ and } \sigma_{i,j}\geq 1\\
+        U(\sigma_{i,j}) &\text{ else }
+    \end{cases}.
+\end{equation}
+
+\paragraph{Parameters}
+In total, we are left with only 4 cellular parameters to describe our system.
+In order to fully specify the system, we also need to define the time for which we are solving, the
+overall physical size and the initial number of agents which we put into the simulation.
+
+\begin{table}
+    \centering
+    \begin{tabular}{l c c}
+        Parameter & Symbol & Value\\
+        \hline
+        Cell Radius & $R_i$ & $\SI{6}{\micro\metre}$\\
+        Potential Strength & $V_0$ & $\SI{2}{\micro\metre^2\per\minute^2}$\\
+        Damping Constant & $\lambda$ & $\SI{2}{\per\minute}$\\
+        Interaction Range & $\xi$ & $1.5 (R_i+R_j)=3R_i$\\
+        \hline
+        Time Stepsize & $\Delta t$ & $\SI{0.2}{\minute}$\\
+        Time Steps & $N_t$ & $10'000$\\
+        Domain Size & $L$ & $110\text{ µm}$\\
+        Cells Species 1 & $N_{C,1}$ & $800$\\
+        Cells Species 2 & $N_{C,2}$ & $800$\\
+    \end{tabular}
+    \caption{
+        This table shows two sections containing parameters and other variables respectively which
+        to fully specify and initialize the system.
+        In total, 1600 cells with random initial positions and zero velocity were placed inside the
+        domain.
+    }
+    \label{tab:cell-sorting-parameters}
+\end{table}
+
+\paragraph{Results}
+Figure~\ref{fig:cell-sorting-results} shows the inital placement of the cells and their final state.
+We can clearly see that the cells have assembled into connected regions of the same species.
+The size of these regions depends on the interaction range and its strength.
+In this example, we did not assume any stochastic motion of the cells.
+It is to be noted that this assumption is not required by \lstinline{cellular_raza} but rather a
+free choice of the model.
+Depending on the desired complexity, users can deeply modify the cellular representation, which is
+the main reason for the development of \lstinline{cellular_raza}.
+We provide two additional
+\href{https://github.com/jonaspleyer/cellular_raza/cellular_raza-examples/cell_sorting}{examples}
+which implement mechanics with Brownian~\cite{Schlick2002} and
+Langevin~\cite{Schlick2002,Pastor1994} dynamics but even more complex cellular representations are
+possible as well (see eg. \href{https://cellular-raza.com/showcase/bacterial-rods}{bacterial-rods}).
+
+\begin{figure}
+    \includegraphics[width=0.5\textwidth]{figures/cell_sorting/0000000020.png}%
+    \includegraphics[width=0.5\textwidth]{figures/cell_sorting/0000010000.png}
+    \caption{
+        Cells are initially placed randomly inside the cuboid simulation domain.
+        After the simulation has finished, the cells have assembled into connected regions of the
+        same species.
+    }
+    \label{fig:cell-sorting-results}
+\end{figure}
+
+% ##################################################################################################
+\section{Multithreading Performance (Amdahl's Law)}
+% ##################################################################################################
+
+\paragraph{Theory}
+One measure of multithreaded performance is to calculate the possible theoretical speedup
+given by Amdahl's law~\cite{Rodgers1985}.
+It provides an estimate for the speedup and assumes that the workload can be split into a
+parallelizable and non-parallelizable part which is quantified by $0\leq p \leq1$.
+A higher value means that the contribution coming from non-parallelizable algorithms is lower.
+
+\begin{equation}
+    T(n) = T_0\frac{1}{(1-p) + \frac{p}{n}}
+    \label{eq:amdahls-law}
+\end{equation}
+
+Here, $n$ is the number of used parallel threads and $p$ is the proportion of execution time which
+benefits from parallelization.
+
+\paragraph{Simulation Setup}
+Measuring the performance of any simulation will be highly dependent on the specific cellular 
+properties and complexity.
+For this comparison, we chose the previously explained cell-sorting example which contains minimal
+complexity compared to other examples (see
+\href{https://cellular-raza.com/showcase}{cellular-raza.com/showcase}).
+Any computational overhead which is intrinsic to \lstinline{cellular_raza} and not related to the
+chosen example would thus be more likely to manifest itself in performance results.
+
+In order to produce repeatable results and simplify this overall process, we provide the
+\href{https://github.com/jonaspleyer/cellular_raza-benchmarks}{cellular\_raza-benchmarks} crate.
+It is a command-line utility which can be used to run benchmarks with various configurations.
+
+\begin{minipage}{\linewidth}\begin{lstlisting}[
+    language=Bash,
+    basicstyle=\ttfamily\footnotesize,
+    caption={
+        Usage of the benchmark CLI tool.
+        We provide two benchmarks, one for increasing the number of agents and another for
+        increasing the number of threads.
+        The subcommands can be further customized and will automatically run the given simulation
+        multiple times for the specified configurations.
+    }
+]
+# cd cellular_raza-benchmarks
+# cargo run -- -h
+cellular_raza benchmarks
+
+Usage: cell_sorting [OPTIONS] <NAME> [COMMAND]
+
+Commands:
+  threads   Thread scaling benchmark
+  sim-size  Simulation Size scaling benchmark
+  help      Print this message or the help of the given subcommand(s)
+
+Arguments:
+  <NAME>  Name of the current runs such as name of the device to be benchmarked
+
+Options:
+  -o, --output-directory <OUTPUT_DIRECTORY>
+          Output directory of benchmark results [default: benchmark_results]
+  -s, --sample-size <SAMPLE_SIZE>
+          Number of samples to be generated for each measurement [default: 5]
+      --no-save
+          Do not save results. This takes priority against the overwrite settings
+      --overwrite
+          Overwrite existing results
+      --no-output
+          Disables output
+  -h, --help
+          Print help
+  -V, --version
+          Print version
+\end{lstlisting}\end{minipage}
+
+Results generated in this way are stored inside the \lstinline{benchmark_results} folder.
+In addition, we provide a python script \lstinline{plotting/cell_sorting.py} to quickly visualize
+the obtained results.
+
+\paragraph{Hardware}
+This benchmark was run on three distinct hardware configurations.
+There exists a wide range of variables which could influence our measured runtime results.
+However, we expect that the biggest effects are due to power-limits and variable frequency of the
+central processing unit (CPU).
+Both of these effects can be circumvented by choosing an artificially fixed frequency which is low
+enough such that the total power limit of the CPU is never reached even when multiple cores are
+under load.
+While it is well known that other aspects such as cache-size and memory latency can have an impact
+on absolute performance, they should however not introduce any significant deviations in terms of
+relative performance scaling.
+
+\begin{table}
+    \centering
+    \begin{tabular}{l c c c}
+        CPU & Fixed Clockspeed & Memory Frequency & TDP\\
+        \hline
+        AMD Ryzen 3700X~\cite{AMDProductSpecifications} & $\SI{2200}{\mega\hertz}$
+            & $\SI{3200}{\mega T\per\second}$ & $\SI{65}{\watt}$\\
+        AMD Ryzen Threadripper 3960X~\cite{AMDProductSpecifications} & $\SI{2000}{\mega\hertz}$
+            & $\SI{3200}{\mega T\per\second}$ & $\SI{280}{\watt}$\\
+        Intel Core i7-12700H~\cite{Inteli712700H} & $\SI{2000}{\mega\hertz}$
+            & $\SI{4800}{\mega T\per\second}$
+            & $\SI{45}{\watt}$\\
+    \end{tabular}
+    \caption{List of tested hardware configurations.}
+    \label{tab:hardware-configurations}
+\end{table}
+
+\paragraph{Results}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/thread_scaling.png}
+    \caption{Performance results for increasing number of utilized threads.}
+    \label{fig:amdahls-law-fit}
+\end{figure}
+
+In figure~\ref{fig:amdahls-law-fit}, we fit equation~\ref{eq:amdahls-law} to our measured datapoints
+and obtain the parameter $p$ from which the theoretical maximal speedup $S$ can be calculated via
+
+\begin{equation}
+    S = \frac{1}{1-p}.
+    \label{eq:amdahls-law-maximum-speedup}
+\end{equation}
+
+The values for the maximum theoretical speedup are $S_\text{3700X}=13.64\pm1.73$,
+$S_\text{3960X}=44.99\pm2.80$ and $S_\text{12700H}=34.74\pm5.05$.
+Their uncertainty $\sigma(S)$ is calculated via the standard gaussian propagation
+
+\begin{equation}
+    \sigma(S) = \frac{\sigma(p)}{(1-p)^2}
+\end{equation}
+
+where $\sigma(p)$ can be obtained from the uncertainty of the the fit in
+figure~\ref{fig:amdahls-law-fit}.
+
+\paragraph{Discussion}
+The perfect score of a fully parallelizable system with $p=1$ is considered almost unobtainable
+in a real-world scenario where effects such as the workload of the underlying operating system
+and physical constraints make it hard to achieve this value.
+Our results showed that the measured value $p$ does also depend on the respective hardware.
+
+In addition to hardware-related influences, we also expect a portion of $1-p$ our simulation code
+to be fundamentally not parallelizable.
+This fraction can be made up of the initial setup of the simulation which necessarily has to start
+single-threaded and can only extend to multiple workers once all respective
+\href{https://cellular-raza.com/docs/cellular_raza_core/backend/chili/struct.SubDomainBox.html}
+{subdomains} have been
+\href{https://cellular-raza.com/docs/cellular_raza_concepts/trait.Domain.html}{generated}.
+Furthermore, ending the simulation not only frees resources which requires computation but also
+locks the main routine until every individual threads is merged.
+Even more importantly, all threads are currently using a shared barrier~\cite{GjengsetHurdles2018}
+to sync with each other which means that even a single worker can block all others.
+This limitation could be fixed in the future with improved versions \lstinline{cellular_raza} and is
+only an implementation detail and not a fundamental drawback.
+
+However, the total speedup $S$ is still very good for all configurations which can be directly
+attributed to a good implementation and the core assumption of \lstinline{cellular_raza} that
+\href{https://cellular-raza.com/guides/introduction/#local-rules}
+{all interactions are strictly local} and subdomains are only interacting along their borders
+without the need to construct long-ranging synchronization algorithms.
+
+% ##################################################################################################
 \section{Conclusions}\label{conclusions}
+% ##################################################################################################
 
-Conclude the findings. 
+We have shown along the example of cell-sorting in section~\ref{sec:cell-sorting} how
+\lstinline{cellular_raza} can be used to model cellular biological systems.
+The modeling process is flexible due to the variety of cellular representations which are supported.
+Afterwards, we applied the cell-sorting simulation to benchmark the performance of the numerical
+backend by solving the specified equations.
+The fractional amount of parallelizable code reached values up to $p=97.78\%$ for a workstation
+setup.
 
+TODO THIS NEEDS SOME MORE WORK
+
+% ##################################################################################################
 \section{Acknowledgements} 
+% ##################################################################################################
 
-Resources that did contribute to this research.
+The author(s) declare that financial support was received for the research, authorship, and/or
+publication of this article.
+JP and CF received funding from FET-Open research and innovation actions grant
+under the European Union’s Horizon 2020 (CyGenTiG; grant agreement 801041).
 
-%\bibliographystyle{abbrv}
-%\bibliography{simple}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
 
-\begin{thebibliography}{}
-
-\bibitem{muster}
-M. Mustermann, N. Nobody, and J. Doe. The joy of publishing. Journal of Any Pub. 32 (2014) 575--582.
-
-\end{thebibliography}
-
-\end{document} 
-
-
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: t
-%%% End:
-
+\end{document}
