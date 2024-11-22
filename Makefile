@@ -9,5 +9,8 @@ clean:
 	rm -f $(NAME).fls
 	rm -f $(NAME).log
 	rm -f $(NAME).pdf
+	rm -f $(NAME).bbl
+	rm -f $(NAME).blg
+	rm -f $(NAME).out
 
 fresh: clean main
