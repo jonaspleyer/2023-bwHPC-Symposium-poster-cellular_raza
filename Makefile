@@ -14,3 +14,6 @@ clean:
 	rm -f $(NAME).out
 
 fresh: clean main
+
+zip:
+	zip archive.zip -r *
