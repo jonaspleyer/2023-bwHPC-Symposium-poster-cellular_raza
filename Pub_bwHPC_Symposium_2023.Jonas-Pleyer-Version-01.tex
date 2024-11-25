@@ -84,11 +84,12 @@
 
 \begin{abstract}
     This paper presents two case-studies using \lstinline{cellular_raza}.
-    First, we develop a simple model with cell-type specific interactions which results in the
-    well-known cell-sorting phenomenon.
+    First, we develop a model with cell-type specific interactions in which cells self-assemble
+    which is also known as cell-sorting.
     In the second approach, we use the previously constructed model to asses the parallelization
     performance of the numerical backend at the core of \lstinline{cellular_raza}.
-    We show that values of up to $p=97.78\pm0.14\%$ parallelizable code are achievable.
+    We show that values of up to $p=97.78\pm0.14\%$ parallelizable code are achievable, which
+    indicates a high level of parallelizability.
 \end{abstract}
 
 % ##################################################################################################
@@ -104,11 +105,12 @@ parameter and behaviour introduced.
 
 At the 9th bwHPC Symposium 2023, we presented a very compacted variety of applications and analytics
 of \lstinline{cellular_raza}~\cite{PeaceOfPostersbwHPC}.
-In order to provide more details, we focus on two case-studies which were also presented.
+In order to provide more details, we focus on two case-studies which were also presented but have
+since then been refined.
 We refer the interested reader to the documentation website
 \href{https://cellular-raza.com}{cellular-raza.com} where one can find the full documentation,
-examples and information about the underlying assumptions and methods which we leveraged in the
-development of \lstinline{cellular_raza}.
+remaining examples and information about the underlying assumptions and methods which we leveraged
+in the development of \lstinline{cellular_raza}.
 
 % ##################################################################################################
 \section{Cell Sorting}
@@ -380,15 +382,21 @@ without the need to construct long-ranging synchronization algorithms.
 \section{Conclusions}\label{conclusions}
 % ##################################################################################################
 
-We have shown along the example of cell-sorting in section~\ref{sec:cell-sorting} how
-\lstinline{cellular_raza} can be used to model cellular biological systems.
+We have shown along the example of cell-sorting how \lstinline{cellular_raza} can be used to model
+cellular biological systems.
 The modeling process is flexible due to the variety of cellular representations which are supported.
-Afterwards, we applied the cell-sorting simulation to benchmark the performance of the numerical
-backend by solving the specified equations.
-The fractional amount of parallelizable code reached values up to $p=97.78\%$ for a workstation
-setup.
-
-TODO THIS NEEDS SOME MORE WORK
+We chose to represent our cells with only 4 parameters, which specify the physical representation
+and interaction of the cells.
+The numerical results showed the expected behaviour of cells assembling into connected regions of
+identical species.\\
+Afterwards, we utilized the previously constructed cell-sorting simulation to benchmark the
+performance of the numerical backend.
+We purposefully picked a large simulation to fully saturate all processors and gradually increased
+the number of threads utilized.
+The fractional amount of parallelizable code was determined by fitting the values of runtime to
+Amdahl's law.
+It reached values up to $p=97.78\%$ for a workstation setup which indicates a well-parallelizable
+implementation.
 
 % ##################################################################################################
 \section{Acknowledgements} 
