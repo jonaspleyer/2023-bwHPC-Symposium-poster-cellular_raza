@@ -61,11 +61,7 @@
 \title{cellular\_raza - Novel Flexibility in Design of Agent-Based Models in Cellular Systems}
 
 \author{
-    Jonas Pleyer\\
-    Freiburg Center for Data Analysis, Modeling and AI\\
-    University of Freiburg
-        \and
-    Christian Fleck\\
+    Jonas Pleyer, Christian Fleck\\\\
     Freiburg Center for Data Analysis, Modeling and AI\\
     University of Freiburg
 }
@@ -83,20 +79,18 @@
 %
 
 \begin{abstract}
-    This paper presents two case-studies using \lstinline{cellular_raza}.
-    First, we develop a model with cell-type specific interactions in which cells self-assemble
-    which is also known as cell-sorting.
-    In the second approach, we use the previously constructed model to asses the parallelization
-    performance of the numerical backend at the core of \lstinline{cellular_raza}.
-    We show that values of up to $p=97.78\pm0.14\%$ parallelizable code are achievable, which
-    indicates a high level of parallelizability.
+    This paper uses \texttt{cellular\_raza} to develop a model with cell-type specific interactions
+    whereby cells self-assemble into regions of similar species which is also known as cell-sorting.
+    We use this model to asses the parallelization performance of the numerical backend at the core
+    of \texttt{cellular\_raza} and show that values of up to $p=97.78\pm0.14\%$ parallelizable code
+    can be achieved, which indicates a high level of parallelizability.
 \end{abstract}
 
 % ##################################################################################################
 \section{Introduction}\label{introduction}
 % ##################################################################################################
 
-\lstinline{cellular_raza} is a cellular agent-based modeling framework~\cite{Pleyer2023} which 
+\texttt{cellular\_raza} is a cellular agent-based modeling framework~\cite{Pleyer2023} which 
 allows researchers to construct models from a clean slate.
 In contrast to other agent-based modelling toolkits, it is free of assumptions about the underlying
 cellular representation.
@@ -104,13 +98,13 @@ This enables researchers to build up complex models while retaining full control
 parameter and behaviour introduced.
 
 At the 9th bwHPC Symposium 2023, we presented a very compacted variety of applications and analytics
-of \lstinline{cellular_raza}~\cite{PeaceOfPostersbwHPC}.
+of \texttt{cellular\_raza}~\cite{PeaceOfPostersbwHPC}.
 In order to provide more details, we focus on two case-studies which were also presented but have
 since then been refined.
 We refer the interested reader to the documentation website
 \href{https://cellular-raza.com}{cellular-raza.com} where one can find the full documentation,
 remaining examples and information about the underlying assumptions and methods which we leveraged
-in the development of \lstinline{cellular_raza}.
+in the development of \texttt{cellular\_raza}.
 
 % ##################################################################################################
 \section{Cell Sorting}
@@ -125,10 +119,10 @@ The underlying principle is that interactions between cells are specific with re
 
 \paragraph{Mathematical Description}
 We assume that our cells are spherical objects which interact via force potentials.
-The two positions of cells are $x_i,x_j$ and their distance is $r=||x_i-x_j||$.
+The two positions of cells are $x_i,x_j$ and their distance is $r_{i,j}=||x_i-x_j||$.
 
 \begin{align}
-    \sigma_{i,j} &= \frac{r}{R_i + R_j}\\
+    \sigma_{i,j} &= \frac{r_{i,j}}{R_i + R_j}\\
     U(\sigma_{i,j}) &= V_0 \left(\frac{1}{3\sigma_{i,j}^3} - \frac{1}{\sigma_{i,j}}\right).
 \end{align}
 
@@ -137,7 +131,7 @@ For simplification, we can assume that they are identical $R_i=R_j=R$.
 Furthermore, we assume that the equation of motion is given by
 
 \begin{equation}
-    \partial^2_t x = F - \lambda \partial_t x
+    \partial^2_t x_i = \sum\limits_j F_{i,j} - \lambda \partial_t x_i
 \end{equation}
 
 where the first term is the usual force term $F = - \nabla V$ obtained by differentiating the given
@@ -153,7 +147,7 @@ To describe this behaviour, we set the potential to zero when $r>R_i+R_j$ (i.e.,
 and both cells have distinct species type $s_i$.
 
 \begin{equation}
-    V(\sigma_{i,j}) =
+    V_{i,j} =
     \begin{cases}
         0 &\text{ if } \sigma_{i,j}\geq\xi/(R_i+R_j)\\
         0 &\text{ if } s_i\neq s_j \text{ and } \sigma_{i,j}\geq 1\\
@@ -196,10 +190,10 @@ Figure~\ref{fig:cell-sorting-results} shows the inital placement of the cells an
 We can clearly see that the cells have assembled into connected regions of the same species.
 The size of these regions depends on the interaction range and its strength.
 In this example, we did not assume any stochastic motion of the cells.
-It is to be noted that this assumption is not required by \lstinline{cellular_raza} but rather a
+It is to be noted that this assumption is not required by \texttt{cellular\_raza} but rather a
 free choice of the model.
-Depending on the desired complexity, users can deeply modify the cellular representation, which is
-the main reason for the development of \lstinline{cellular_raza}.
+Depending on the desired complexity, users can substantially modify the cellular representation,
+which is the main reason for the development of \texttt{cellular\_raza}.
 We provide two additional
 \href{https://github.com/jonaspleyer/cellular_raza/cellular_raza-examples/cell_sorting}{examples}
 which implement mechanics with Brownian~\cite{Schlick2002} and
@@ -227,14 +221,17 @@ given by Amdahl's law~\cite{Rodgers1985}.
 It provides an estimate for the speedup and assumes that the workload can be split into a
 parallelizable and non-parallelizable part which is quantified by $0\leq p \leq1$.
 A higher value means that the contribution coming from non-parallelizable algorithms is lower.
+The theoretical maximum $p=1$ means that all of the executed code is parallelizable.
+Amdahl's law is given by
 
 \begin{equation}
     T(n) = T_0\frac{1}{(1-p) + \frac{p}{n}}
     \label{eq:amdahls-law}
 \end{equation}
 
-Here, $n$ is the number of used parallel threads and $p$ is the proportion of execution time which
-benefits from parallelization.
+where $T(n)$ describes the throughput which can be achieved given $n$ parallel threads and the
+variable $p$ is the relative proportion of execution time which benefits from parallelization.
+The total latency of a program can be determined via the inverse of the throughput.
 
 \paragraph{Simulation Setup}
 Measuring the performance of any simulation will be highly dependent on the specific cellular 
@@ -242,10 +239,10 @@ properties and complexity.
 For this comparison, we chose the previously explained cell-sorting example which contains minimal
 complexity compared to other examples (see
 \href{https://cellular-raza.com/showcase}{cellular-raza.com/showcase}).
-Any computational overhead which is intrinsic to \lstinline{cellular_raza} and not related to the
+Any computational overhead which is intrinsic to \texttt{cellular\_raza} and not related to the
 chosen example would thus be more likely to manifest itself in performance results.
 
-In order to produce repeatable results and simplify this overall process, we provide the
+In order to produce reproducible results and simplify this overall process, we provide the
 \href{https://github.com/jonaspleyer/cellular_raza-benchmarks}{cellular\_raza-benchmarks} crate.
 It is a command-line utility which can be used to run benchmarks with various configurations.
 
@@ -291,8 +288,8 @@ Options:
           Print version
 \end{lstlisting}\end{minipage}
 
-Results generated in this way are stored inside the \lstinline{benchmark_results} folder.
-In addition, we provide a python script \lstinline{plotting/cell_sorting.py} to quickly visualize
+Results generated in this way are stored inside the \texttt{benchmark\_results} folder.
+In addition, we provide a python script \texttt{plotting/cell\_sorting.py} to quickly visualize
 the obtained results.
 
 \paragraph{Hardware}
@@ -329,15 +326,16 @@ relative performance scaling.
 \begin{figure}
     \centering
     \includegraphics[width=0.8\textwidth]{figures/thread_scaling.png}
-    \caption{Performance results for increasing number of utilized threads.}
+    \caption{Performance of the throughput $T(n)$ for increasing number of utilized threads $n$.}
     \label{fig:amdahls-law-fit}
 \end{figure}
 
-In figure~\ref{fig:amdahls-law-fit}, we fit equation~\ref{eq:amdahls-law} to our measured datapoints
-and obtain the parameter $p$ from which the theoretical maximal speedup $S$ can be calculated via
+In figure~\ref{fig:amdahls-law-fit}, we fit Amdahl's law of equation~\ref{eq:amdahls-law} to our
+measured datapoints and obtain the parameter $p$ from which the theoretical maximal speedup $S$ can
+be calculated via
 
 \begin{equation}
-    S = \frac{1}{1-p}.
+    S = \frac{1}{1-p}=\lim\limits_{n\rightarrow\infty}T(n)
     \label{eq:amdahls-law-maximum-speedup}
 \end{equation}
 
@@ -354,26 +352,26 @@ figure~\ref{fig:amdahls-law-fit}.
 
 \paragraph{Discussion}
 The perfect score of a fully parallelizable system with $p=1$ is considered almost unobtainable
-in a real-world scenario where effects such as the workload of the underlying operating system
-and physical constraints make it hard to achieve this value.
+in a real-world scenario due to effects such as the workload of the underlying operating system
+and physical constraints.
 Our results showed that the measured value $p$ does also depend on the respective hardware.
 
-In addition to hardware-related influences, we also expect a portion of $1-p$ our simulation code
+In addition to hardware-related effects, we also expect a portion of $1-p$ our simulation code
 to be fundamentally not parallelizable.
 This fraction can be made up of the initial setup of the simulation which necessarily has to start
 single-threaded and can only extend to multiple workers once all respective
 \href{https://cellular-raza.com/docs/cellular_raza_core/backend/chili/struct.SubDomainBox.html}
-{subdomains} have been
+{subdomains} are generated
 \href{https://cellular-raza.com/docs/cellular_raza_concepts/trait.Domain.html}{generated}.
 Furthermore, ending the simulation not only frees resources which requires computation but also
 locks the main routine until every individual threads is merged.
 Even more importantly, all threads are currently using a shared barrier~\cite{GjengsetHurdles2018}
 to sync with each other which means that even a single worker can block all others.
-This limitation could be fixed in the future with improved versions \lstinline{cellular_raza} and is
+This limitation could be fixed in the future with improved versions \texttt{cellular\_raza} and is
 only an implementation detail and not a fundamental drawback.
 
 However, the total speedup $S$ is still very good for all configurations which can be directly
-attributed to a good implementation and the core assumption of \lstinline{cellular_raza} that
+attributed to a good implementation and the core assumption of \texttt{cellular\_raza} that
 \href{https://cellular-raza.com/guides/introduction/#local-rules}
 {all interactions are strictly local} and subdomains are only interacting along their borders
 without the need to construct long-ranging synchronization algorithms.
@@ -382,17 +380,16 @@ without the need to construct long-ranging synchronization algorithms.
 \section{Conclusions}\label{conclusions}
 % ##################################################################################################
 
-We have shown along the example of cell-sorting how \lstinline{cellular_raza} can be used to model
+We showed along the example of cell-sorting how \texttt{cellular\_raza} can be used to model
 cellular biological systems.
 The modeling process is flexible due to the variety of cellular representations which are supported.
 We chose to represent our cells with only 4 parameters, which specify the physical representation
 and interaction of the cells.
 The numerical results showed the expected behaviour of cells assembling into connected regions of
 identical species.\\
-Afterwards, we utilized the previously constructed cell-sorting simulation to benchmark the
-performance of the numerical backend.
-We purposefully picked a large simulation to fully saturate all processors and gradually increased
-the number of threads utilized.
+Utilizing the cell-sorting simulation, we benchmarked the performance of the numerical backend.
+We picked a simulation which is large enough to fully saturate all processors and gradually
+increased the number of threads utilized.
 The fractional amount of parallelizable code was determined by fitting the values of runtime to
 Amdahl's law.
 It reached values up to $p=97.78\%$ for a workstation setup which indicates a well-parallelizable
