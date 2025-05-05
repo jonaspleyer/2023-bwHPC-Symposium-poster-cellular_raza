@@ -351,31 +351,57 @@ Their uncertainty $\sigma(S)$ can be calculated via the standard gaussian propag
 where $\sigma(p)$ is the uncertainty of the parameter $p$ obtained via the fit in
 figure~\ref{fig:amdahls-law-fit}.
 
-\paragraph{Discussion}
-The perfect score of a fully parallelizable system with $p=1$ is considered almost unobtainable
-in a real-world scenario due to effects such as the workload of the underlying operating system
-and physical constraints.
-Our results showed that the measured value $p$ does also depend on the respective hardware.
-
-In addition to hardware-related effects, we also expect a portion of $1-p$ of our simulation code
-to be fundamentally not parallelizable.
-This fraction can be made up of the initial setup of the simulation which necessarily has to start
-single-threaded and can only extend to multiple workers once all respective
+\section{Discussion}
+In a real-world scenario, the perfect score of a fully parallelizable system with $p=1$ is
+considered unobtainable due to effects such as the workload of the underlying operating system and
+physical constraints.
+Additionally, the findings of this study demonstrate that the calculated value of $p$ is contingent
+on the specific hardware utilized, and a subset of the simulation code, amounting to $1-p$, is
+inherently non-parallelizable.
+This phenomenon can be partially attributed to the initial configuration of the simulation, which is
+required to commence in a single-threaded manner.
+Only subsequent to the generation of all respective
 \href{https://cellular-raza.com/docs/cellular_raza_core/backend/chili/struct.SubDomainBox.html}
-{subdomains} are
-\href{https://cellular-raza.com/docs/cellular_raza_concepts/trait.Domain.html}{generated}.
-Furthermore, ending the simulation not only frees resources which requires computation but also
-locks the main routine until every individual thread has finished.
-Even more importantly, all threads are currently using a shared barrier~\cite{GjengsetHurdles2018}
-to sync with each other which means that even a single worker can block all others.
-This limitation could be fixed in the future with improved versions \texttt{cellular\_raza} and is
-only an implementation detail and not a fundamental drawback.
+{subdomains} can the simulation transition to a state of execution involving multiple workers.
+Furthermore, the termination of the simulation results in the freeing of resources which also
+requires computational resources.
+Additionally, this action locks the main routine until the completion of all individual threads.
+In the context of \texttt{cellular\_raza}, all threads are currently utilizing a shared
+barrier~\cite{GjengsetHurdles2018} to synchronize with each other.
+This configuration results in a scenario in which a single worker has the potential to obstruct the
+operations of all others.
+This limitation may be addressed in future iterations of \texttt{cellular\_raza}.
+It should be noted that this is merely an implementation detail and not a fundamental restriction.
+Nonetheless, the aggregate acceleration $S$ obtained in our configurations allows for remarkably
+effective parallelization.
+This can be directly ascribed to the implementation and the fundamental assumption of
+\texttt{cellular\_raza} that all Interactions are strictly local, and subdomains only interact along
+their borders.
 
-However, the total speedup $S$ is still very good for all configurations which can be directly
-attributed to a good implementation and the core assumption of \texttt{cellular\_raza} that
-\href{https://cellular-raza.com/guides/introduction/#local-rules}
-{all interactions are strictly local} and subdomains are only interacting along their borders
-without the need to construct long-ranging synchronization algorithms.
+% The perfect score of a fully parallelizable system with $p=1$ is considered almost unobtainable
+% in a real-world scenario due to effects such as the workload of the underlying operating system
+% and physical constraints.
+% Our results showed that the measured value $p$ does also depend on the respective hardware.
+% 
+% In addition to hardware-related effects, we also expect a portion of $1-p$ of our simulation code
+% to be fundamentally not parallelizable.
+% This fraction can be made up of the initial setup of the simulation which necessarily has to start
+% single-threaded and can only extend to multiple workers once all respective
+% \href{https://cellular-raza.com/docs/cellular_raza_core/backend/chili/struct.SubDomainBox.html}
+% {subdomains} are
+% \href{https://cellular-raza.com/docs/cellular_raza_concepts/trait.Domain.html}{generated}.
+% Furthermore, ending the simulation not only frees resources which requires computation but also
+% locks the main routine until every individual thread has finished.
+% Even more importantly, all threads are currently using a shared barrier~\cite{GjengsetHurdles2018}
+% to sync with each other which means that even a single worker can block all others.
+% This limitation could be fixed in the future with improved versions \texttt{cellular\_raza} and is
+% only an implementation detail and not a fundamental drawback.
+% 
+% However, the total speedup $S$ is still very good for all configurations which can be directly
+% attributed to a good implementation and the core assumption of \texttt{cellular\_raza} that
+% \href{https://cellular-raza.com/guides/introduction/#local-rules}
+% {all interactions are strictly local} and subdomains are only interacting along their borders
+% without the need to construct long-ranging synchronization algorithms.
 
 % ##################################################################################################
 \section{Conclusions}\label{conclusions}
