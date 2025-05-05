@@ -378,31 +378,6 @@ This can be directly ascribed to the implementation and the fundamental assumpti
 \texttt{cellular\_raza} that all Interactions are strictly local, and subdomains only interact along
 their borders.
 
-% The perfect score of a fully parallelizable system with $p=1$ is considered almost unobtainable
-% in a real-world scenario due to effects such as the workload of the underlying operating system
-% and physical constraints.
-% Our results showed that the measured value $p$ does also depend on the respective hardware.
-% 
-% In addition to hardware-related effects, we also expect a portion of $1-p$ of our simulation code
-% to be fundamentally not parallelizable.
-% This fraction can be made up of the initial setup of the simulation which necessarily has to start
-% single-threaded and can only extend to multiple workers once all respective
-% \href{https://cellular-raza.com/docs/cellular_raza_core/backend/chili/struct.SubDomainBox.html}
-% {subdomains} are
-% \href{https://cellular-raza.com/docs/cellular_raza_concepts/trait.Domain.html}{generated}.
-% Furthermore, ending the simulation not only frees resources which requires computation but also
-% locks the main routine until every individual thread has finished.
-% Even more importantly, all threads are currently using a shared barrier~\cite{GjengsetHurdles2018}
-% to sync with each other which means that even a single worker can block all others.
-% This limitation could be fixed in the future with improved versions \texttt{cellular\_raza} and is
-% only an implementation detail and not a fundamental drawback.
-% 
-% However, the total speedup $S$ is still very good for all configurations which can be directly
-% attributed to a good implementation and the core assumption of \texttt{cellular\_raza} that
-% \href{https://cellular-raza.com/guides/introduction/#local-rules}
-% {all interactions are strictly local} and subdomains are only interacting along their borders
-% without the need to construct long-ranging synchronization algorithms.
-
 % ##################################################################################################
 \section{Conclusions}\label{conclusions}
 % ##################################################################################################
@@ -421,21 +396,6 @@ threads utilized was gradually increased.
 The fractional amount of parallelizable code was determined by fitting the values of runtime to
 Amdahl's law.
 It reached $97.78\%$ for a workstation setup, indicating a well-parallelizable implementation.
-
-% We showed along the example of cell-sorting how \texttt{cellular\_raza} can be used to model
-% cellular biological systems.
-% The modeling process is flexible due to the variety of cellular representations which are supported.
-% We chose to represent our cells with only 4 parameters, which specify the physical representation
-% and interaction of the cells.
-% The numerical results showed the expected behaviour of cells assembling into connected regions of
-% identical species.\\
-% Utilizing the cell-sorting simulation, we benchmarked the performance of the numerical backend.
-% We picked a simulation which is large enough to fully saturate all processors and gradually
-% increased the number of threads utilized.
-% The fractional amount of parallelizable code was determined by fitting the values of runtime to
-% Amdahl's law.
-% It reached values up to $p=97.78\%$ for a workstation setup which indicates a well-parallelizable
-% implementation.
 
 % ##################################################################################################
 \section{Acknowledgements} 
