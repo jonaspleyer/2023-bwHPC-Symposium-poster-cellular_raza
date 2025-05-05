@@ -407,20 +407,35 @@ their borders.
 \section{Conclusions}\label{conclusions}
 % ##################################################################################################
 
-We showed along the example of cell-sorting how \texttt{cellular\_raza} can be used to model
-cellular biological systems.
-The modeling process is flexible due to the variety of cellular representations which are supported.
-We chose to represent our cells with only 4 parameters, which specify the physical representation
-and interaction of the cells.
-The numerical results showed the expected behaviour of cells assembling into connected regions of
-identical species.\\
-Utilizing the cell-sorting simulation, we benchmarked the performance of the numerical backend.
-We picked a simulation which is large enough to fully saturate all processors and gradually
-increased the number of threads utilized.
+We demonstrated the application of \texttt{cellular\_raza} as a modeling framework for cellular
+biological systems, utilizing a case study involving cell sorting as an illustrative example.
+The modeling process is characterized by its flexibility, attributable to the variety of cellular
+representations that are supported.
+We selected a model that utilizes a mere four parameters to represent the cells, thereby elucidating
+their physical characteristics and interactions.
+The numerical results demonstrated the anticipated behavior of cells assembling into connected
+regions of identical species.
+The performance of the numerical backend was benchmarked using the cell-sorting simulation.
+A simulation of sufficient magnitude was selected to saturate all processors, and the number of
+threads utilized was gradually increased.
 The fractional amount of parallelizable code was determined by fitting the values of runtime to
 Amdahl's law.
-It reached values up to $p=97.78\%$ for a workstation setup which indicates a well-parallelizable
-implementation.
+It reached $97.78\%$ for a workstation setup, indicating a well-parallelizable implementation.
+
+% We showed along the example of cell-sorting how \texttt{cellular\_raza} can be used to model
+% cellular biological systems.
+% The modeling process is flexible due to the variety of cellular representations which are supported.
+% We chose to represent our cells with only 4 parameters, which specify the physical representation
+% and interaction of the cells.
+% The numerical results showed the expected behaviour of cells assembling into connected regions of
+% identical species.\\
+% Utilizing the cell-sorting simulation, we benchmarked the performance of the numerical backend.
+% We picked a simulation which is large enough to fully saturate all processors and gradually
+% increased the number of threads utilized.
+% The fractional amount of parallelizable code was determined by fitting the values of runtime to
+% Amdahl's law.
+% It reached values up to $p=97.78\%$ for a workstation setup which indicates a well-parallelizable
+% implementation.
 
 % ##################################################################################################
 \section{Acknowledgements} 
